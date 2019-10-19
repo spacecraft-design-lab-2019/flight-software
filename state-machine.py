@@ -1,3 +1,33 @@
+# Set to false to disable testing/tracing code
+TESTING = True
+
+def log(s):
+    """Print the argument if testing/tracing is enabled."""
+    if TESTING:
+        print(s)
+
+class State(object):
+
+    def __init__(self):
+        pass
+
+    @property
+    def name(self):
+        return ''
+
+    def enter(self, machine):
+        pass
+
+    def exit(self, machine):
+        pass
+
+    def update(self, machine):
+        # if switch.fell:
+        #     machine.paused_state = machine.state.name
+        #     machine.pause()
+        #     return False
+        return True
+
 class StateMachine(object):
 
     def __init__(self):
@@ -32,13 +62,21 @@ class IdleState(object):
     def name(self):
         return 'idle'
 
+    def enter(self, machine):
+        State.enter(self, machine)
+
+    def exit(self, machine):
+        State.exit(self, machine)
+
     def read_sensors(sensors):
         print("sensor readings are:")
-        return sensor_readings
 
     def determine_attitude(sensor_readings):
         print("attitude is:")
-        return attitude
+
+    def update(self, machine):
+        print("updating")
+
 
 
 
@@ -48,5 +86,6 @@ machine.add_state(IdleState())
 
 machine.go_to_state('idle')
 
-while True:
+#while True:
+for i in range(0,3):
     machine.update()
