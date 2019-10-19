@@ -1,3 +1,17 @@
+#things the satellite ALWAYS needs to be doing
+#keeping time
+#accepting comms
+#broadcasting comms (?)
+#determining attitude: we can't detumble if we don't know we need to
+#   reading sensor data
+#reading battery
+#other?
+
+## QUESTION:
+# how are we going to implement power saving?
+#   use time.sleep?
+#   physically turn off the flight computer and use some sort of counter?
+
 # Set to false to disable testing/tracing code
 TESTING = True
 
@@ -27,6 +41,14 @@ def read_sensors(machine,time):
 
 def determine_attitude(machine,time):
     return
+
+def control_attitude():
+    return
+
+def read_battery(machine):
+    if machine.battery < 20: #if battery is below 20%
+        return True
+    else: return False
 
 class State(object):
 
@@ -61,6 +83,7 @@ class StateMachine(object):
         self.v = [-831.937369e-3,4688.525767e-3,-6004.570270e-3]
         self.w = [0, 0, 0]
         self.t = 0
+        self.battery = 19 #initialize battery at 100% charge (?)
 
     def add_state(self, state):
         self.states[state.name] = state
@@ -91,19 +114,35 @@ class IdleState(object):
         State.exit(self, machine)
 
     def update(self, machine):
-        if read_sensors(machine, 0):
-            return
+        if read_battery(machine):
+            machine.go_to_state('lowpp')
+        else:
+            read_sensors(machine, 0)
 
 
+class LowPowerState(object):
 
+    @property
+    def name(self):
+        return 'lowpp'
 
+    def enter(self, machine):
+        State.enter(self, machine)
 
+    def exit(self, machine):
+        State.exit(self, machine)
+
+    def update(self, machine):
+        if not read_battery(machine):
+            machine.go_to_state('idle')
 
 machine = StateMachine()
 machine.add_state(IdleState())
+machine.add_state(LowPowerState())
 
 machine.go_to_state('idle')
 
 #while True:
 for i in range(0,3):
     machine.update()
+    machine.battery = 100
