@@ -6,6 +6,28 @@ def log(s):
     if TESTING:
         print(s)
 
+def read_magnetometer():
+    log("magnetometer reading is:")
+    return
+
+def read_sun_sensor():
+    log("sun sensor reading is:")
+    return
+
+def read_imu():
+    log("imu reading is:")
+    return
+
+def read_sensors(machine,time):
+    read_magnetometer()
+    read_sun_sensor()
+    read_imu()
+
+    return True
+
+def determine_attitude(machine,time):
+    return
+
 class State(object):
 
     def __init__(self):
@@ -68,14 +90,10 @@ class IdleState(object):
     def exit(self, machine):
         State.exit(self, machine)
 
-    def read_sensors(sensors):
-        print("sensor readings are:")
-
-    def determine_attitude(sensor_readings):
-        print("attitude is:")
-
     def update(self, machine):
-        print("updating")
+        if read_sensors(machine, 0):
+            return
+
 
 
 
