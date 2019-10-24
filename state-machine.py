@@ -19,6 +19,7 @@
 import board
 import digitalio
 import time
+import supervisor
 
 led = digitalio.DigitalInOut(board.D13)
 led.direction = digitalio.Direction.OUTPUT
@@ -155,8 +156,14 @@ machine.add_state(LowPowerState())
 
 machine.go_to_state('idle')
 
-#while True:
-for i in range(0,3):
-    time.sleep(10)
+while True:
+    if supervisor.runtime.serial_bytes_available:
+        inText = input().strip()
+        # Sometimes Windows sends an extra (or missing) newline - ignore them
+        if inText == "":
+            continue
+        else:
+            machine.battery = int(inText)
+        print("received: %s" %inText)
     machine.update()
-    machine.battery = 100
+    time.sleep(5)
