@@ -13,6 +13,18 @@
 #   physically turn off the flight computer and use some sort of counter?
 
 # Set to false to disable testing/tracing code
+
+## QUESTION:
+# is this trinket specific?
+import board
+import digitalio
+import time
+
+led = digitalio.DigitalInOut(board.D13)
+led.direction = digitalio.Direction.OUTPUT
+#############################################
+
+
 TESTING = True
 
 def log(s):
@@ -119,7 +131,6 @@ class IdleState(object):
         else:
             read_sensors(machine, 0)
 
-
 class LowPowerState(object):
 
     @property
@@ -128,9 +139,11 @@ class LowPowerState(object):
 
     def enter(self, machine):
         State.enter(self, machine)
+        led.value = True
 
     def exit(self, machine):
         State.exit(self, machine)
+        led.value = False
 
     def update(self, machine):
         if not read_battery(machine):
@@ -144,5 +157,6 @@ machine.go_to_state('idle')
 
 #while True:
 for i in range(0,3):
+    time.sleep(10)
     machine.update()
     machine.battery = 100
