@@ -14,6 +14,8 @@
 
 # Set to false to disable testing/tracing code
 
+#screen /dev/tty.usbmodem1411 115200
+
 ## QUESTION:
 # is this trinket specific?
 import board
@@ -62,6 +64,15 @@ def read_battery(machine):
     if machine.battery < 20: #if battery is below 20%
         return True
     else: return False
+
+def snap_a_pic(self, machine):
+    return
+
+def downlink(self,machine):
+    return
+
+def uplink(self,machine):
+    return
 
 class State(object):
 
@@ -113,6 +124,24 @@ class StateMachine(object):
         if self.state:
             log('Updating %s' % (self.state.name))
             self.state.update(self)
+
+class PayloadState(object):
+
+    @property
+    def name(self):
+        return 'payload'
+
+    def enter(self, machine):
+        State.enter(self, machine)
+
+    def exit(self, machine):
+        State.exit(self, machine)
+
+    def update(self, machine):
+        if read_battery(machine):
+            machine.go_to_state('lowpp')
+        else:
+            read_sensors(machine, 0)
 
 class IdleState(object):
 
@@ -166,4 +195,4 @@ while True:
             machine.battery = int(inText)
         print("received: %s" %inText)
     machine.update()
-    time.sleep(5)
+    time.sleep(1)
