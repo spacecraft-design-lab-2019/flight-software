@@ -27,7 +27,6 @@ led = digitalio.DigitalInOut(board.D13)
 led.direction = digitalio.Direction.OUTPUT
 #############################################
 
-
 TESTING = True
 
 def log(s):
