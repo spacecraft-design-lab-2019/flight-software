@@ -1,7 +1,3 @@
-
-#screen /dev/tty.usbmodem1411 115200
-
-
 #screen /dev/tty.usbmodem1411 115200
 
 import board
@@ -11,8 +7,6 @@ import supervisor
 
 led = digitalio.DigitalInOut(board.D13)
 led.direction = digitalio.Direction.OUTPUT
-
-#led.value = True
 
 class State(object):
     def __init__(self):
@@ -68,7 +62,7 @@ class ReadyState(object):
             inText = input().strip()
             if inText == '1':
                 machine.go_to_state('payload')
-        time.sleep(.1)
+        #time.sleep(.1)
 
 class PayloadState(object):
 
@@ -85,25 +79,16 @@ class PayloadState(object):
         #led.value = True
 
     def update(self, machine):
-        time.sleep(.1)
+        print('payload\r\n')
+        #time.sleep(.1)
 
+#create machine object of class StateMachine and add two states
 machine = StateMachine()
 machine.add_state(ReadyState())
 machine.add_state(PayloadState())
 
+#start off the StateMachine object in ReadyState
 machine.go_to_state('ready')
 
 while True:
     machine.update()
-
-    #led.value = machine.led_value
-    # if machine.state == 'ready':
-    #     print('ready\r\n') #read this on comp side using .strip().decode('ascii')
-    # if supervisor.runtime.serial_bytes_available:
-    #     inText = input().strip()
-    #     #if inText != '1':
-    #     machine.state = 'comms'
-    #     led.value = True
-    #         #machine.led_value = False
-    #
-    # time.sleep(.1)

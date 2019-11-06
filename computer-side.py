@@ -13,15 +13,16 @@ print(ser.is_open)
 while True:
 #for i in range(1,100):
     bytes_to_read = ser.inWaiting()
-    print('number of bytes to read: %s' %bytes_to_read)
+    #print('number of bytes to read: %s' %bytes_to_read)
     #ser.write('1'.encode('ascii'))
-    x = ser.read(bytes_to_read).strip().decode('ascii')
-    if x:
+    if bytes_to_read:
+        x = ser.read(bytes_to_read).strip().decode('ascii')
         print("received: {}".format(x))
-        to_send = '1\r\n'
-        print('writing to serial: %s' %to_send)
-        ser.write(to_send.encode('ascii'))
-        break
+        if x == 'ready':
+            to_send = '1\r\n'
+            print('writing to serial: %s' %to_send)
+            ser.write(to_send.encode('ascii'))
+
 
 #x = ser.readline().decode('ascii')
 
