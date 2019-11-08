@@ -87,7 +87,7 @@ class ReadyState(object):
         State.exit(self, machine)
 
     def update(self, machine):
-        print('ready\r\n') #read this on comp side using .strip().decode('ascii')
+        print('0\r\n') #read this on comp side using .strip().decode('ascii')
         if supervisor.runtime.serial_bytes_available:
             inText = input().strip()
             if inText == '1':
@@ -113,10 +113,27 @@ class PayloadState(object):
         print('payload\r\n')
         #time.sleep(.1)
 
+class AttitudeControl(object):
+
+    @property
+    def name(self):
+        return 'attitude'
+
+    def enter(self, machine):
+        State.enter(self, machine)
+        led.value = True
+
+    def exit(self, machine):
+        State.exit(self, machine)
+
+    def update(self, machine):
+        print('attitude\r\n')
+
 #create machine object of class StateMachine and add two states
 machine = StateMachine()
 machine.add_state(ReadyState())
 machine.add_state(PayloadState())
+machine.add_state(AttitudeControl())
 
 #start off the StateMachine object in ReadyState
 machine.go_to_state('ready')
