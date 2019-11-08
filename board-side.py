@@ -14,6 +14,7 @@ import busio
 #from adafruit_bus_device.spi_device import SPIDevice
 
 from fake_sensors import * #from camera import *
+from gnc import *
 
 led = digitalio.DigitalInOut(board.D13)
 led.direction = digitalio.Direction.OUTPUT
@@ -59,6 +60,10 @@ class StateMachine():
     def __init__(self):
         self.state = None
         self.states = {}
+        self.I = [[17,0,0],[0,18,0],[0,0,22]]
+        self.vector = [0,0,0,0,0,0]
+        self.t = 0
+        self.battery = 100
 
     def add_state(self, state):
         self.states[state.name] = state
@@ -92,7 +97,23 @@ class ReadyState(object):
             inText = input().strip()
             if inText == '1':
                 machine.go_to_state('payload')
-        #time.sleep(.1)
+
+class ListeningState(object):
+
+    @property
+    def name(self):
+        return 'listening'
+
+    def enter(self, machine):
+        State.enter(self, machine)
+        led.value = False
+
+    def exit(self, machine):
+        State.exit(self, machine)
+
+    def update(self, machine):
+        if supervisor.runtime.serial_bytes_available:
+            inText = input().strip()
 
 class PayloadState(object):
 
@@ -127,7 +148,9 @@ class AttitudeControl(object):
         State.exit(self, machine)
 
     def update(self, machine):
-        print('attitude\r\n')
+        machine.vector = gnc_main()
+        #if abs(machine.vector - measurements) <= threshold
+            #then go to idle state
 
 #create machine object of class StateMachine and add two states
 machine = StateMachine()
