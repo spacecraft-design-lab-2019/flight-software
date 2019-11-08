@@ -12,12 +12,17 @@ import busio
 #import adafruit_sdcard
 #from digitalio import DigitalInOut, Direction, Pull
 #from adafruit_bus_device.spi_device import SPIDevice
+import random
 
 from fake_sensors import * #from camera import *
 from gnc import *
 
 led = digitalio.DigitalInOut(board.D13)
 led.direction = digitalio.Direction.OUTPUT
+
+import neopixel
+colorful_led = neopixel.NeoPixel(board.NEOPIXEL, 1)
+colorful_led.brightness = 0.01
 
 ### UNCOMMENT WHEN CAMERA IS SET UP ####
 # set up SPI communication
@@ -38,6 +43,14 @@ led.direction = digitalio.Direction.OUTPUT
 # print_directory("/sd")
 # print('')
 
+
+def package_data(list_of_data):
+    '''
+    function to turn a list of data into a comma separated string
+    '''
+    packaged = ','.join(map(str, list_of_data))
+    packaged += '\r\n'
+    return packaged
 
 class State(object):
     def __init__(self):
@@ -61,7 +74,8 @@ class StateMachine():
         self.state = None
         self.states = {}
         self.I = [[17,0,0],[0,18,0],[0,0,22]]
-        self.vector = [0,0,0,0,0,0]
+        self.sensors = [0,0,0,0,0,0]
+        self.vector = [0,0,0,0,0,0,0,0,0,0,0,0,0]
         self.t = 0
         self.battery = 100
 
@@ -86,7 +100,6 @@ class ReadyState(object):
 
     def enter(self, machine):
         State.enter(self, machine)
-        led.value = False
 
     def exit(self, machine):
         State.exit(self, machine)
@@ -94,9 +107,10 @@ class ReadyState(object):
     def update(self, machine):
         print('0\r\n') #read this on comp side using .strip().decode('ascii')
         if supervisor.runtime.serial_bytes_available:
-            inText = input().strip()
-            if inText == '1':
-                machine.go_to_state('payload')
+            machine.go_to_state('listening')
+            # inText = input().strip()
+            # if inText == '1':
+            #     machine.go_to_state('payload')
 
 class ListeningState(object):
 
@@ -106,7 +120,7 @@ class ListeningState(object):
 
     def enter(self, machine):
         State.enter(self, machine)
-        led.value = False
+        colorful_led[0] = (0, 0, 255) #blue
 
     def exit(self, machine):
         State.exit(self, machine)
@@ -114,6 +128,25 @@ class ListeningState(object):
     def update(self, machine):
         if supervisor.runtime.serial_bytes_available:
             inText = input().strip()
+            if len(inText) == 11:
+                machine.sensors = inText.split(",")
+                machine.go_to_state('idle')
+
+class TalkingState(object):
+
+    @property
+    def name(self):
+        return 'talking'
+
+    def enter(self, machine):
+        State.enter(self, machine)
+        print(package_data(machine.vector))
+
+    def exit(self, machine):
+        State.exit(self, machine)
+
+    def update(self, machine):
+        machine.go_to_state('listening')
 
 class PayloadState(object):
 
@@ -123,16 +156,32 @@ class PayloadState(object):
 
     def enter(self, machine):
         State.enter(self, machine)
-        led.value = True
         snap_a_pic()
 
     def exit(self, machine):
         State.exit(self, machine)
-        #led.value = True
 
     def update(self, machine):
         print('payload\r\n')
-        #time.sleep(.1)
+
+class IdleState(object):
+
+    @property
+    def name(self):
+        return 'idle'
+
+    def enter(self, machine):
+        State.enter(self, machine)
+        colorful_led[0] = (255, 0, 0) #red
+
+    def exit(self, machine):
+        State.exit(self, machine)
+
+    def update(self, machine):
+        machine.vector = gnc_main(machine.sensors)
+        #also we want to be sending/receiving comms via radio
+        machine.go_to_state('talking')
+
 
 class AttitudeControl(object):
 
@@ -148,7 +197,7 @@ class AttitudeControl(object):
         State.exit(self, machine)
 
     def update(self, machine):
-        machine.vector = gnc_main()
+        return
         #if abs(machine.vector - measurements) <= threshold
             #then go to idle state
 
@@ -156,6 +205,9 @@ class AttitudeControl(object):
 machine = StateMachine()
 machine.add_state(ReadyState())
 machine.add_state(PayloadState())
+machine.add_state(IdleState())
+machine.add_state(ListeningState())
+machine.add_state(TalkingState())
 machine.add_state(AttitudeControl())
 
 #start off the StateMachine object in ReadyState

@@ -1,7 +1,8 @@
 import serial
 import time
 
-data = ['1']
+data0 = [0,0,0,0,0,0]
+data1 = [1,1,1,1,1,1]
 
 class State(object):
     def __init__(self):
@@ -73,7 +74,7 @@ class TalkingState(object):
         State.exit(self, machine)
 
     def update(self, machine):
-        to_send = package_data(data)
+        to_send = package_data(data0)
         print('writing to serial')
         machine.ser.write(to_send.encode('ascii'))
         machine.go_to_state('listening')
@@ -99,7 +100,6 @@ def main():
 
     machine.go_to_state('listening')
     machine.ser.open()
-
     while True:
         machine.update()
 
