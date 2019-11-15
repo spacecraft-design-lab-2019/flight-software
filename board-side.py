@@ -24,6 +24,8 @@ import neopixel
 colorful_led = neopixel.NeoPixel(board.NEOPIXEL, 1)
 colorful_led.brightness = 0.01
 
+time.sleep(6)
+
 ### UNCOMMENT WHEN CAMERA IS SET UP ####
 # set up SPI communication
 # spi = busio.SPI(board.SCK, MISO=board.MISO, MOSI=board.MOSI)
@@ -43,13 +45,12 @@ colorful_led.brightness = 0.01
 # print_directory("/sd")
 # print('')
 
-
 def package_data(list_of_data):
     '''
     function to turn a list of data into a comma separated string
     '''
     packaged = ','.join(map(str, list_of_data))
-    packaged += '\r\n'
+    #packaged += '\r\n'
     return packaged
 
 class State(object):
@@ -92,26 +93,6 @@ class StateMachine():
         if self.state:
             self.state.update(self)
 
-class ReadyState(object):
-
-    @property
-    def name(self):
-        return 'ready'
-
-    def enter(self, machine):
-        State.enter(self, machine)
-
-    def exit(self, machine):
-        State.exit(self, machine)
-
-    def update(self, machine):
-        print('0\r\n') #read this on comp side using .strip().decode('ascii')
-        if supervisor.runtime.serial_bytes_available:
-            machine.go_to_state('listening')
-            # inText = input().strip()
-            # if inText == '1':
-            #     machine.go_to_state('payload')
-
 class ListeningState(object):
 
     @property
@@ -121,6 +102,7 @@ class ListeningState(object):
     def enter(self, machine):
         State.enter(self, machine)
         colorful_led[0] = (0, 0, 255) #blue
+        print('0')
 
     def exit(self, machine):
         State.exit(self, machine)
@@ -128,7 +110,7 @@ class ListeningState(object):
     def update(self, machine):
         if supervisor.runtime.serial_bytes_available:
             inText = input().strip()
-            if len(inText) == 11:
+            if len(inText) > 25:
                 machine.sensors = inText.split(",")
                 machine.go_to_state('idle')
 
@@ -140,7 +122,12 @@ class TalkingState(object):
 
     def enter(self, machine):
         State.enter(self, machine)
-        print(package_data(machine.vector))
+        to_send = 'start'
+        to_send += package_data(machine.sensors)
+        to_send += 'end'
+        print(to_send)
+        print('im talking\r\n')  # DO NOT ERASE
+        #print(package_data(machine.vector))
 
     def exit(self, machine):
         State.exit(self, machine)
@@ -172,6 +159,7 @@ class IdleState(object):
 
     def enter(self, machine):
         State.enter(self, machine)
+        print("hey im in idle\r\n")
         colorful_led[0] = (255, 0, 0) #red
 
     def exit(self, machine):
@@ -203,7 +191,6 @@ class AttitudeControl(object):
 
 #create machine object of class StateMachine and add two states
 machine = StateMachine()
-machine.add_state(ReadyState())
 machine.add_state(PayloadState())
 machine.add_state(IdleState())
 machine.add_state(ListeningState())
@@ -211,7 +198,7 @@ machine.add_state(TalkingState())
 machine.add_state(AttitudeControl())
 
 #start off the StateMachine object in ReadyState
-machine.go_to_state('ready')
+machine.go_to_state('listening')
 
 while True:
     machine.update()
