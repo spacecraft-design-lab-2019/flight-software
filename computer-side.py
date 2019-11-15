@@ -1,14 +1,20 @@
 import serial
 import time
+import os
+import sys
+
+dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, dir+'/groundtruth-simulator/Simulator/')
+
 from simulation_step import *
 
-#simulator stuff
-import pdb
 import numpy as np
-import matplotlib.pyplot as plt
-from sim_config import *
-from simulation_step import simulation_step
-from propagate_step import sgp4_step
+import sim_config as config
+import conversions as conv
+from constants import *
+from propagate_step import *
+import sensors as sense
+
 
 class State(object):
     def __init__(self):
