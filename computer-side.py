@@ -6,14 +6,9 @@ import sys
 dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, dir+'/groundtruth-simulator/Simulator/')
 
-from simulation_step import *
-
 import numpy as np
 import sim_config as config
-import conversions as conv
-from constants import *
-from propagate_step import *
-import sensors as sense
+from simulator import Simulator
 
 
 class State(object):
@@ -37,9 +32,10 @@ class StateMachine():
     def __init__(self):
         self.state = None
         self.states = {}
-        self.sensors = None
-        self.sim_state = None
-        self.state_history = None
+        self.simulator = Simulator(config)
+        # self.sensors = None
+        # self.sim_state = None
+        #self.state_history = None
         self.i = 0
 
     def add_state(self, state):
@@ -98,9 +94,9 @@ class TalkingState(object):
 
     def update(self, machine):
         # Simulator
-        machine.sensors, machine.sim_state = simulation_step(np.zeros(3), machine.sim_state)
-        machine.state_history[machine.i+1, :] = machine.sim_state['state']
-        to_send = package_data(list(machine.sim_state['state']))
+        machine.sensors, _, _ = machine.simulator.step(np.zeros(3),config.tstep)
+        machine.state_history[machine.i+1, :] = machine.simulator.state
+        to_send = package_data(list(machine.simulator.state))
         print('writing to serial')
         machine.ser.write(to_send.encode('ascii'))
         machine.go_to_state('listening')
@@ -118,27 +114,20 @@ def package_data(list_of_data):
 def main():
     #----------------Initialize / Setup Workspace------------------
     tspan = np.array([0, 86400])    # [sec]
-    T = np.arange(0, tspan[1]+tstep, tstep)
-
-
-    #---------------------Initial State Vector---------------------
-    r_i, v_i = sgp4_step(line1, line2, tstart)
-    # pdb.set_trace()
-    state_i = np.r_[r_i, q_i, v_i, w_i]
-    state_history = np.zeros((np.shape(T)[0], np.shape(state_i)[0]))
-    state_history_sgp4 = np.zeros((np.shape(T)[0], 6))
-    state_history[0, :] = state_i
-    state_history_sgp4[0, :] = np.r_[r_i, v_i]
-    sim_state = {'state': state_i, 't': tstart}
+    T = np.arange(0, tspan[1]+config.tstep, config.tstep)
 
     machine = StateMachine()
+    machine.state_history = np.zeros((np.shape(T)[0], np.shape(machine.simulator.state)[0]))
+    print(machine.simulator.state)
+    #print(machine.state_history)
+
     machine.ser = serial.Serial()
 
     machine.ser.baudrate = 115200
     machine.ser.port = '/dev/tty.usbmodem1411'
     machine.ser.timeout = .01
-    machine.sim_state = sim_state
-    machine.state_history = state_history
+    #machine.sim_state = sim_state
+    #machine.state_history = state_history
 
 
     machine.add_state(ListeningState())
