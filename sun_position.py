@@ -8,6 +8,7 @@ def approx_sun_position_ECI(MJD):
     Outputs:
     r_vec - numpy array with x, y, z of Sun position in ECI at input time
     """
+    import math
     JD = MJD + 2400000.5
     OplusW = 282.94
     T = (JD - 2451545.0) / 36525
