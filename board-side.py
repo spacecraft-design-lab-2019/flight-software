@@ -54,6 +54,9 @@ def package_data(list_of_data):
     return packaged
 
 class State(object):
+    '''
+    generic state class
+    '''
     def __init__(self):
         pass
 
@@ -71,14 +74,17 @@ class State(object):
         return True
 
 class StateMachine():
+    '''
+    state machine class
+    '''
     def __init__(self):
-        self.state = None
-        self.states = {}
-        self.I = [[17,0,0],[0,18,0],[0,0,22]]
-        self.sensors = [0,0,0,0,0,0]
-        self.vector = [0,0,0,0,0,0,0,0,0,0,0,0,0]
-        self.t = 0
-        self.battery = 100
+        self.state = None #the current state
+        self.states = {} #dict of all the states
+        self.I = [[17,0,0],[0,18,0],[0,0,22]] #(should it go here?) spacecraft moment of inertia
+        self.sensors = [0,0,0,0,0,0] #current sensor measurements
+        self.vector = [0,0,0,0,0,0,0,0,0,0,0,0,0] #current state vector
+        self.t = 0 #current time
+        self.battery = 100 #(should it go in self.sensors?) battery charge level
 
     def add_state(self, state):
         self.states[state.name] = state
@@ -94,7 +100,10 @@ class StateMachine():
             self.state.update(self)
 
 class ListeningState(object):
-
+    '''
+    for HITL testing: the listening state waits for a list of sensor measurements
+    from the simulator
+    '''
     @property
     def name(self):
         return 'listening'
@@ -110,7 +119,7 @@ class ListeningState(object):
     def update(self, machine):
         if supervisor.runtime.serial_bytes_available:
             inText = input().strip()
-            if len(inText) > 25:
+            if len(inText) > 25: #this if statement is maybe unnecessary
                 machine.sensors = inText.split(",")
                 machine.go_to_state('idle')
 
@@ -126,7 +135,7 @@ class TalkingState(object):
         to_send += package_data(machine.sensors)
         to_send += 'end'
         print(to_send)
-        print('im talking\r\n')  # DO NOT ERASE
+        print('im talking\r\n')  # DO NOT ERASE lol
         #print(package_data(machine.vector))
 
     def exit(self, machine):
