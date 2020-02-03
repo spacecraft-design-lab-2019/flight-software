@@ -45,9 +45,9 @@ machine.add_state(IdleState())
 machine.go_to_state('idle')
 
 # wait 5 seconds to allow for running computer-side.py
-cubesat.RGB = (255, 0, 0)
+cubesat.RGB = (255, 0, 0) # set LED to red
 time.sleep(5)
-cubesat.RGB = (0, 255, 0)
+cubesat.RGB = (0, 255, 0) # set LED to green
 
 
 while True:
