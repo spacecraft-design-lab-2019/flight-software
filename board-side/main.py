@@ -14,8 +14,8 @@ class StateMachine():
     def __init__(self):
         self.state = None # the current state
         self.states = {} # dict containing all the states
-        self.sensors = [0,0,0,0] # current sensor measurements
-        self.cmd = [0,0,0,0] # current commanded dipole
+        self.sensors = [0,0,0,0,0,0,0,0,0] # current sensor measurements
+        self.cmd = [0,0,0] # current commanded dipole
 
     def add_state(self, state):
         self.states[state.name] = state
@@ -26,10 +26,9 @@ class StateMachine():
         self.state = self.states[state_name]
         self.state.enter(self)
 
-    def update(self):
+    def update(self,cubesat):
         # publish command input to magnetorquers and poll sensors
-        self.cmd = self.sensors # for debugging only
-        self.sensors = sim_communicate(self.cmd)
+        self.sensors = sim_communicate(self.cmd, cubesat)
 
         if self.state:
             self.state.update(self)
@@ -51,4 +50,4 @@ cubesat.RGB = (0, 255, 0) # set LED to green
 
 
 while True:
-    machine.update()
+    machine.update(cubesat)

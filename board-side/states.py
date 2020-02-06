@@ -33,7 +33,7 @@ class IdleState(State):
         return 'idle'
 
     def enter(self, machine):
-        super().enter(machine)
+        State.enter(self, machine)
 
     def exit(self, machine):
         super().exit(machine)

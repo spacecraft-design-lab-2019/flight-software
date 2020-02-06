@@ -1,9 +1,15 @@
 """
 A simple module for sending/receiving data via serial (USB) to the PyCubed Mini board.
 """
+import os, sys, pdb
+dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, dir+'/groundtruth-simulator/Simulator/')
 
 import json
-import serial
+import serial, time
+import numpy as np
+import sim_config as config
+from simulator import Simulator
 
 
 def safe_json(data):
@@ -26,8 +32,9 @@ def send(board, data):
     Sends data over serial to the board (HITL)
     """
     if safe_json(data):
-        board.reset_output_buffer() # clear the current buffer in case previously sent data was not recieved
-        board.write(json.dumps(data).encode())
+        # board.reset_output_buffer() # clear the current buffer in case previously sent data was not recieved
+        to_send = json.dumps(data) + '\r\n'
+        board.write(to_send.encode())
     else:
         raise ValueError("FAIL: data-sent was unserializable via JSON.")
 
@@ -38,10 +45,10 @@ def receive():
 
     note that the function will wait until something is received
     """
-    while not board.inWaiting():
+    while board.in_waiting == 0:
         pass
 
-    data = board.readline()
+    data = board.read_until()
     return json.loads(data)
 
 
@@ -52,16 +59,30 @@ def receive():
 board = serial.Serial()
 board.baudrate = 115200
 board.port = '/dev/ttyACM0'
-board.timeout = .01
+board.timeout = .1
 
 board.open()
 board.reset_input_buffer()
 board.reset_output_buffer()
 
-sensors = [1, 3.3+5.5, 'string', 4.0]
+# initialize simulator
+simulator = Simulator(config)
 
-while True:
+for i in range(100):
+
+    board.read_until() # this statement is here because for some reason the previously sent sensors are clogging up the buffer
     cmd = receive()
+
+    print("Command:")
     print(cmd)
-    send(board, sensors)
-    
+
+    # sensors = simulator.step(np.array(cmd))
+    sensors = np.random.rand(4)
+    print("Sensors:")
+    print(sensors)
+
+    pdb.set_trace()
+    send(board, sensors.tolist())
+    print()
+
+board.close()
