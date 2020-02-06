@@ -26,9 +26,9 @@ class StateMachine():
         self.state = self.states[state_name]
         self.state.enter(self)
 
-    def update(self,cubesat):
+    def update(self):
         # publish command input to magnetorquers and poll sensors
-        self.sensors = sim_communicate(self.cmd, cubesat)
+        self.sensors = sim_communicate(self.cmd)
 
         if self.state:
             self.state.update(self)
@@ -50,4 +50,4 @@ cubesat.RGB = (0, 255, 0) # set LED to green
 
 
 while True:
-    machine.update(cubesat)
+    machine.update()

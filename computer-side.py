@@ -68,7 +68,7 @@ board.reset_output_buffer()
 # initialize simulator
 simulator = Simulator(config)
 
-for i in range(100):
+for i in range(1000):
 
     board.read_until() # this statement is here because for some reason the previously sent sensors are clogging up the buffer
     cmd = receive()
@@ -76,12 +76,11 @@ for i in range(100):
     print("Command:")
     print(cmd)
 
-    # sensors = simulator.step(np.array(cmd))
-    sensors = np.random.rand(4)
+    sensors = simulator.step(np.array(cmd))
+    # sensors = np.random.rand(4)
     print("Sensors:")
     print(sensors)
 
-    pdb.set_trace()
     send(board, sensors.tolist())
     print()
 

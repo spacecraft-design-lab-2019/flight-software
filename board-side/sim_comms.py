@@ -48,22 +48,17 @@ def receive():
         return None
 
 
-def sim_communicate(cmd, cubesat):
+def sim_communicate(cmd):
     """
     Publishes the latest commanded dipole (based on control law), then polls
     the simulator for spoofed sensor measurements
     """
     send(cmd)
 
-
-    # PROBABLY ADD A TIME.SLEEP() HERE SO THAT THE COMPUTER SIDE HAS TIME TO TAKE SENT COMMAND OUT OF BUFFER. THAT WAY
-    # SUPERVISOR.RUNTIME.SERIAL_BYTES_AVAILABLE WILL NOT ONLY RETURN TRUE
-
     # wait until the simulator sends back sensor inputs. (hopefully not long)
     #  -- could potentially add timeout function here to ensure we don't block
     #     the on-board code for too long
     while not supervisor.runtime.serial_bytes_available:
-        cubesat.RGB = (0, 0, 255)
         pass
 
     # IMPORTANT NOTE:
@@ -71,7 +66,5 @@ def sim_communicate(cmd, cubesat):
     # -- for some reason, after the first loop, supervisor.runtime.serial_bytes_available ALWAYS returns true, and the
     #    code is held up at input()
 
-    cubesat.RGB = (255, 255, 0)
     sensors = receive()
-    cubesat.RGB = (0, 255, 255)
     return sensors
