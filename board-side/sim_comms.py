@@ -25,27 +25,27 @@ def safe_json(data):
 def send(data):
     """
     Sends data over serial to the simulator (HITL)
-    """
-    if safe_json(data):
-        print(json.dumps(data))
-    else:
-        raise ValueError("FAIL: data-sent was unserializable via JSON.")
+    """ 
+    if not safe_json(data):
+        raise ValueError("FAIL: sending data that is unserializable via JSON.")
+
+    msg = json.dumps(data)
+    print(json.dumps((msg, hash(msg))))
 
 
 def receive():
     """
     Receives data from the serial sent by the simulator (HITL)
     """
-    if supervisor.runtime.serial_bytes_available:
-        encoded = input()
-        try:
-            data = json.loads(encoded)
-        except Exception as e:
-            return None
-        else:
-            return data
-    else:
-        return None
+    encoded = input() # note that this function is blocking until a \r\n character is received.
+    try:
+        msg = json.loads(encoded)
+        # assert hash(msg[0]) == msg[1], "checksum failed"
+        return json.loads(msg[0])
+
+    except (ValueError, AssertionError):
+        send("ERROR: data not well received. Please resend.")
+        return False
 
 
 def sim_communicate(cmd):
@@ -55,16 +55,17 @@ def sim_communicate(cmd):
     """
     send(cmd)
 
-    # wait until the simulator sends back sensor inputs. (hopefully not long)
-    #  -- could potentially add timeout function here to ensure we don't block
-    #     the on-board code for too long
-    while not supervisor.runtime.serial_bytes_available:
-        pass
+    while True:
+        sensors = receive()
 
-    # IMPORTANT NOTE:
-    # -- the command input() that is called in the method receive() is blocking until a \r\n character is received.
-    # -- for some reason, after the first loop, supervisor.runtime.serial_bytes_available ALWAYS returns true, and the
-    #    code is held up at input()
+        if sensors == False:
+            # the sim sent something unreadable
+            send("ERROR: data not well received. Please resend.")
 
-    sensors = receive()
-    return sensors
+        elif sensors == "ERROR: data not well received. Please resend.":
+            # the sim did not understand what was last sent
+            send(cmd)
+
+        else:
+            return sensors
+

@@ -2,6 +2,8 @@
 Module for board state machine and generic state
 
 """
+# import ulab as np
+# import detumble_algorithms as detumble
 
 class State():
     """
@@ -36,7 +38,27 @@ class IdleState(State):
         State.enter(self, machine)
 
     def exit(self, machine):
-        super().exit(machine)
+        State.exit(self, machine)
 
     def update(self, machine):
         pass
+
+class DetumbleState(State):
+    """
+    Class for detumbling
+    """
+    @property
+    def name(self):
+        return 'detumble'
+
+    def enter(self, machine):
+        State.enter(self, machine)
+
+    def exit(self, machine):
+        State.exit(self, machine)
+
+    def update(self, machine):
+        Bold = np.array(machine.sensors_old[0:3])
+        Bnew = np.array(machine.sensors[0:3])
+        Bdot = detumble.get_B_dot(Bold, Bnew, .1) # this is a hardcoded tstep (for now)
+        machine.cmd = list(detumble.detumble_B_dot(Bnew, Bdot))

@@ -1,56 +1,19 @@
 """
 A simple module for sending/receiving data via serial (USB) to the PyCubed Mini board.
 """
-import os, sys, pdb
+import os, sys
 dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, dir+'/groundtruth-simulator/Simulator/')
 
-import json
-import serial, time
+import pdb
+import time
+import serial
 import numpy as np
 import sim_config as config
 from simulator import Simulator
-
-
-def safe_json(data):
-    """
-    Checks if the input data is serializable via JSON
-    """
-    if data is None:
-        return True
-    elif isinstance(data, (str, bool, int, float)):
-        return True
-    elif isinstance(data, (tuple, list)):
-        return all(safe_json(x) for x in data)
-    elif isinstance(data, dict):
-        return all(isinstance(k, str) and safe_json(v) for k, v in data.items())
-    return False
-
-
-def send(board, data):
-    """
-    Sends data over serial to the board (HITL)
-    """
-    if safe_json(data):
-        # board.reset_output_buffer() # clear the current buffer in case previously sent data was not recieved
-        to_send = json.dumps(data) + '\r\n'
-        board.write(to_send.encode())
-    else:
-        raise ValueError("FAIL: data-sent was unserializable via JSON.")
-
-
-def receive():
-    """
-    Receives data over serial sent by the board (HITL)
-
-    note that the function will wait until something is received
-    """
-    while board.in_waiting == 0:
-        pass
-
-    data = board.read_until()
-    return json.loads(data)
-
+from board_comms import board_communicate
+import matplotlib.pyplot as plt
+plt.close('all')
 
 
 ######################### MAIN LOOP ##############################
@@ -65,23 +28,25 @@ board.open()
 board.reset_input_buffer()
 board.reset_output_buffer()
 
+
 # initialize simulator
 simulator = Simulator(config)
+cmd = [0,0,0] # start off first iteration with zero command
 
-for i in range(1000):
+num_steps = 2000
+w_history = np.zeros(num_steps)
 
-    board.read_until() # this statement is here because for some reason the previously sent sensors are clogging up the buffer
-    cmd = receive()
-
-    print("Command:")
-    print(cmd)
-
+for i in range(num_steps):
     sensors = simulator.step(np.array(cmd))
-    # sensors = np.random.rand(4)
-    print("Sensors:")
-    print(sensors)
-
-    send(board, sensors.tolist())
-    print()
+    w_history[i] = np.linalg.norm(sensors[3:6])
+    cmd = board_communicate(board, sensors.tolist())
+    print(i)
 
 board.close()
+
+plt.figure()
+plt.plot(w_history)
+plt.xlabel('time step (.1 sec each)')
+plt.ylabel('angular velocity magnitude')
+plt.grid()
+plt.show()

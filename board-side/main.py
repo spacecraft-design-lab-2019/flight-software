@@ -3,7 +3,7 @@
 import time
 from pycubedmini import cubesat
 from sim_comms import sim_communicate
-from states import IdleState
+from states import IdleState, DetumbleState
 
 ######################## STATE MACHINE ###########################
 
@@ -14,7 +14,8 @@ class StateMachine():
     def __init__(self):
         self.state = None # the current state
         self.states = {} # dict containing all the states
-        self.sensors = [0,0,0,0,0,0,0,0,0] # current sensor measurements
+        self.sensors_old = [0,0,0,0,0,0,0,0,0] # previous sensor measurements
+        self.sensors = self.sensors_old # current sensor measurements
         self.cmd = [0,0,0] # current commanded dipole
 
     def add_state(self, state):
@@ -28,6 +29,7 @@ class StateMachine():
 
     def update(self):
         # publish command input to magnetorquers and poll sensors
+        self.sensors_old = self.sensors
         self.sensors = sim_communicate(self.cmd)
 
         if self.state:
@@ -51,3 +53,4 @@ cubesat.RGB = (0, 255, 0) # set LED to green
 
 while True:
     machine.update()
+    
