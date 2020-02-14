@@ -2,9 +2,12 @@
 A simple module for sending/receiving data via serial (USB) to the HITL computer.
 """
 
-import json
 import time
-import supervisor
+import json
+
+
+def hash(s):
+    return sum(bytes(s, 'utf-8'))
 
 
 def safe_json(data):
@@ -40,7 +43,7 @@ def receive():
     encoded = input() # note that this function is blocking until a \r\n character is received.
     try:
         msg = json.loads(encoded)
-        # assert hash(msg[0]) == msg[1], "checksum failed"
+        assert hash(msg[0]) == msg[1], "checksum failed"
         return json.loads(msg[0])
 
     except (ValueError, AssertionError):

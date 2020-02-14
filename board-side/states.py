@@ -2,8 +2,8 @@
 Module for board state machine and generic state
 
 """
-# import ulab as np
-# import detumble_algorithms as detumble
+import ulab as np
+import detumble_algorithms as detumble
 
 class State():
     """

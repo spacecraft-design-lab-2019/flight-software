@@ -40,16 +40,16 @@ class StateMachine():
 
 # create machine object of class StateMachine and add states
 machine = StateMachine()
-machine.add_state(IdleState())
+# machine.add_state(IdleState())
+machine.add_state(DetumbleState())
 
 # start off the StateMachine object in idle
-machine.go_to_state('idle')
+machine.go_to_state('detumble')
 
-# wait 5 seconds to allow for running computer-side.py
+# wait until an input from the computer before continuing
 cubesat.RGB = (255, 0, 0) # set LED to red
-time.sleep(5)
+input()
 cubesat.RGB = (0, 255, 0) # set LED to green
-
 
 while True:
     machine.update()

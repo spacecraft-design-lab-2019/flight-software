@@ -2,12 +2,17 @@
 A simple module for sending/receiving data via serial (USB) to the board.
 """
 
+import pdb
+import time
 import json
-import time, pdb
 
 ## Note:
 #   The following article can be referenced to help JSON serialize a custom class:
 #   https://medium.com/python-pandemonium/json-the-python-way-91aac95d4041
+
+def hash(s):
+    return sum(bytes(s, 'utf-8'))
+
 
 def safe_json(data):
     """
@@ -35,10 +40,14 @@ def send(board, data):
     msg = json.dumps(data)
     to_send = json.dumps((msg, hash(msg))) + '\r\n'
     board.write(to_send.encode())
-    board.read_until() # here because for some reason the sent sensors are clogging up the buffer
+
+    while board.in_waiting == 0:
+        pass
+
+    board.read_until() # here because for some reason the sent sensors are echoed back
 
 
-def receive(board):
+def receive(board, timeout=1.0):
     """
     Receives data over serial sent by the board (HITL)
 
@@ -46,25 +55,26 @@ def receive(board):
     """
     start = time.time()
     while board.in_waiting == 0:
-        if (time.time() - start) > 1.0:
+        if (time.time() - start) > timeout:
             return None
 
-    try:
-        encoded = board.read_until()
-        msg = json.loads(encoded)
-        # assert hash(msg[0]) == msg[1], "checksum failed"
-        return json.loads(msg[0])
+    while board.in_waiting > 0: # keep trying until buffer is empty
+        try:
+            encoded = board.read_until()
+            msg = json.loads(encoded)
+            assert hash(msg[0]) == msg[1], "checksum failed"
+            return json.loads(msg[0])
 
-    except (json.decoder.JSONDecodeError, AssertionError):
-        if encoded == b"Traceback (most recent call last):\r\n":
-            # the board code has errored out
-            print("ERROR: board code has errored out:\n")
-            while board.in_waiting > 0:
-                print(board.read_until())
-            quit()
+        except (json.decoder.JSONDecodeError, AssertionError):
+            if encoded == b"Traceback (most recent call last):\r\n":
+                # the board code has errored out
+                print("ERROR: board code has errored out:\n")
+                time.sleep(.1)
+                while board.in_waiting > 0:
+                    print(board.read_until())
+                quit()
 
-        else:
-            return False
+    return False
 
 
 def board_communicate(board, sensors):
@@ -94,5 +104,7 @@ def board_communicate(board, sensors):
 
         else:
             return data
+
+        time.sleep(.1) # add a slight delay -- ONLY if some of the three errors above occurred
 
     raise RuntimeError("could not communicate with board in 3 attempts.")
