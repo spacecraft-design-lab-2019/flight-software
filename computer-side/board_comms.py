@@ -77,34 +77,42 @@ def receive(board, timeout=1.0):
     return False
 
 
-def board_communicate(board, sensors):
+def board_communicate(board, sensors, max_attempts=3):
     """
     Publishes the latest sensor measurements, then polls the board for the
     latest commanded dipole.
     """
     send(board, sensors)
 
-    for i in range(3):
+    fails = 0
+    while fails < max_attempts:
         data = receive(board)
 
         if data == False:
             # the board sent something unreadable
             send(board, "ERROR: data not well received. Please resend.")
-            print("data was false") # for debugging
+            fails += 1
+            # print("data was false") # for debugging
             
         elif data == None:
             # the board did not send anything - is likely stuck on input()
             send(board, sensors)
-            print("data was none") # for debugging
+            fails += 1
+            # print("data was none") # for debugging
 
         elif data == "ERROR: data not well received. Please resend.":
             # the board did not understand what was last sent
             send(board, sensors)
-            print("board didn't understand") # for debugging
+            fails += 1
+            # print("board didn't understand") # for debugging
+
+        elif type(data) == list and data[0] == "PASSTHROUGH MESSAGE":
+            # simply allow the message to pass through and continue
+            print(data)
 
         else:
             return data
 
         time.sleep(.1) # add a slight delay -- ONLY if some of the three errors above occurred
 
-    raise RuntimeError("could not communicate with board in 3 attempts.")
+    raise RuntimeError("could not communicate with board in {} attempts.".format(max_attempts))

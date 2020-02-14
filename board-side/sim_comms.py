@@ -25,6 +25,13 @@ def safe_json(data):
     return False
 
 
+def passthrough_msg(msg):
+    """
+    Sends a message over serial to be simply printed out for debugging (not interpreted by sim)
+    """
+    send(["PASSTHROUGH MESSAGE", msg])
+
+
 def send(data):
     """
     Sends data over serial to the simulator (HITL)
