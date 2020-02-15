@@ -29,7 +29,7 @@ def passthrough_msg(msg):
     """
     Sends a message over serial to be simply printed out for debugging (not interpreted by sim)
     """
-    send(["PASSTHROUGH MESSAGE", msg])
+    send(["PASSTHROUGH_MESSAGE", msg])
 
 
 def send(data):
@@ -54,7 +54,7 @@ def receive():
         return json.loads(msg[0])
 
     except (ValueError, AssertionError):
-        send("ERROR: data not well received. Please resend.")
+        send("DATA_RECEIVE_ERROR")
         return False
 
 
@@ -70,9 +70,9 @@ def sim_communicate(cmd):
 
         if sensors == False:
             # the sim sent something unreadable
-            send("ERROR: data not well received. Please resend.")
+            send("DATA_RECEIVE_ERROR")
 
-        elif sensors == "ERROR: data not well received. Please resend.":
+        elif sensors == "DATA_RECEIVE_ERROR":
             # the sim did not understand what was last sent
             send(cmd)
 

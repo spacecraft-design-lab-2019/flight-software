@@ -90,7 +90,7 @@ def board_communicate(board, sensors, max_attempts=6):
 
         if data == False:
             # the board sent something unreadable
-            send(board, "ERROR: data not well received. Please resend.")
+            send(board, "DATA_RECEIVE_ERROR")
             fails += 1
             # print("data was false") # for debugging
             
@@ -100,13 +100,13 @@ def board_communicate(board, sensors, max_attempts=6):
             fails += 1
             # print("data was none") # for debugging
 
-        elif data == "ERROR: data not well received. Please resend.":
+        elif data == "DATA_RECEIVE_ERROR":
             # the board did not understand what was last sent
             send(board, sensors)
             fails += 1
             # print("board didn't understand") # for debugging
 
-        elif type(data) == list and data[0] == "PASSTHROUGH MESSAGE":
+        elif type(data) == list and data[0] == "PASSTHROUGH_MESSAGE":
             # simply allow the message to pass through and continue
             print(data)
 
