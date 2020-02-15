@@ -10,7 +10,7 @@ import json
 #   The following article can be referenced to help JSON serialize a custom class:
 #   https://medium.com/python-pandemonium/json-the-python-way-91aac95d4041
 
-def hash(s):
+def char_sum(s):
     return sum(bytes(s, 'utf-8'))
 
 
@@ -38,7 +38,7 @@ def send(board, data):
 
     board.reset_output_buffer() # clear the current buffer in case previously sent data was not recieved
     msg = json.dumps(data)
-    to_send = json.dumps((msg, hash(msg))) + '\r\n'
+    to_send = json.dumps((msg, char_sum(msg))) + '\r\n'
     board.write(to_send.encode())
 
     while board.in_waiting == 0:
@@ -62,7 +62,7 @@ def receive(board, timeout=1.0):
         try:
             encoded = board.read_until()
             msg = json.loads(encoded)
-            assert hash(msg[0]) == msg[1], "checksum failed"
+            assert char_sum(msg[0]) == msg[1], "checksum failed"
             return json.loads(msg[0])
 
         except (json.decoder.JSONDecodeError, AssertionError):

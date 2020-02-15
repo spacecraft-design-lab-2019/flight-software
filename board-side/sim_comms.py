@@ -6,7 +6,7 @@ import time
 import json
 
 
-def hash(s):
+def char_sum(s):
     return sum(bytes(s, 'utf-8'))
 
 
@@ -40,7 +40,7 @@ def send(data):
         raise ValueError("FAIL: sending data that is unserializable via JSON.")
 
     msg = json.dumps(data)
-    print(json.dumps((msg, hash(msg))))
+    print(json.dumps((msg, char_sum(msg))))
 
 
 def receive():
@@ -50,7 +50,7 @@ def receive():
     encoded = input() # note that this function is blocking until a \r\n character is received.
     try:
         msg = json.loads(encoded)
-        assert hash(msg[0]) == msg[1], "checksum failed"
+        assert char_sum(msg[0]) == msg[1], "checksum failed"
         return json.loads(msg[0])
 
     except (ValueError, AssertionError):
