@@ -77,7 +77,7 @@ def receive(board, timeout=1.0):
     return False
 
 
-def board_communicate(board, sensors, max_attempts=3):
+def board_communicate(board, sensors, max_attempts=6):
     """
     Publishes the latest sensor measurements, then polls the board for the
     latest commanded dipole.
