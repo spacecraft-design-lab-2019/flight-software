@@ -21,7 +21,7 @@ plt.close('all')
 # initialize serial interface with board
 board = serial.Serial()
 board.baudrate = 115200
-board.port = '/dev/ttyACM1'
+board.port = '/dev/ttyACM0'
 board.timeout = .1
 
 board.open()
@@ -34,7 +34,7 @@ simulator = Simulator(config)
 cmd = [0,0,0] # start off first iteration with zero command
 
 # tunable parameters
-num_steps = 20000
+num_steps = 2000
 L_history = np.zeros(num_steps)
 cmd_history = np.zeros((num_steps,3))
 

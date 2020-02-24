@@ -5,6 +5,7 @@ Module for board state machine and generic state
 import ulab as np
 import detumble_algorithms as detumble
 
+
 class State():
     """
     generic State class
@@ -42,6 +43,25 @@ class IdleState(State):
 
     def update(self, machine):
         pass
+
+
+class LowPowerState(State):
+    """
+    Class for remaining idle
+    """
+    @property
+    def name(self):
+        return 'lowpower'
+
+    def enter(self, machine):
+        State.enter(self, machine)
+
+    def exit(self, machine):
+        State.exit(self, machine)
+
+    def update(self, machine):
+        pass
+
 
 class DetumbleState(State):
     """

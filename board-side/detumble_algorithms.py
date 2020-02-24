@@ -6,6 +6,7 @@ Created on Tue Oct  8 19:36:55 2019
 
 @description: Implementation of magnetorquer detumbling laws (See Wertz 7.5)
 """
+import math
 import ulab as np
 
 # def detumble_B_cross(omega,B,k):
@@ -22,7 +23,7 @@ import ulab as np
 #     L = -k* (np.identity(3) - b @ np.transpose(b)) @ omega
 #     return L
     
-def detumble_B_dot(B,B_dot,k=20):
+def detumble_B_dot(B,B_dot,k=1):
     '''
     Takes in magnetic field, magnetic field rate (as 3x1 vectors, in principal frame), and control gain (scalar)
     and returns a 3x1 control moment
@@ -31,8 +32,9 @@ def detumble_B_dot(B,B_dot,k=20):
     '''
     Bt = B.copy()
     Bt.transpose()
-    m = B_dot / (list(np.dot(B,Bt))[0] / k)
-    del Bt
+    m = B_dot / (math.sqrt(np.dot(B, Bt)[0])/k)
+    # B_norm = math.sqrt(sum(x*x for x in B))
+    # m = [k*x/B_norm for x in B_dot]
     return m
 
 # def detumble_B_dot_bang_bang(B_dot, max_dipoles = [[8.8e-3],[1.373e-2],[8.2e-3]]):
@@ -56,5 +58,6 @@ def get_B_dot(B1,B2,dt):
     a first order approximation to the rate of change of the magnetic field (3x1)
     '''
     B_dot = (B2-B1)/dt
+    # B_dot = [(b-a)/dt for a, b in zip(B1, B2)]
     return B_dot
     

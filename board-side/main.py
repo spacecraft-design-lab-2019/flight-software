@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import gc
 import time
 from pycubedmini import cubesat
-from sim_comms import sim_communicate
+from sim_comms import sim_communicate, passthrough_msg
 from states import IdleState, DetumbleState
 
 ######################## STATE MACHINE ###########################
@@ -34,6 +35,10 @@ class StateMachine():
 
         if self.state:
             self.state.update(self)
+
+        passthrough_msg("free heap space: {}".format(gc.mem_free()))
+        # if gc.mem_free() < 10000:
+        #     gc.collect()
 
 
 ######################### MAIN LOOP ##############################
