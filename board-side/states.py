@@ -8,7 +8,7 @@ import detumble_algorithms as detumble
 
 class State():
     """
-    generic State class
+    generic state class
     """
     def __init__(self):
         pass
@@ -24,13 +24,14 @@ class State():
         pass
 
     def update(self, machine):
-        return True
+        pass
 
 
 class IdleState(State):
     """
-    Class for remaining idle
+    Default state for the satellite. Majority of actions occur via IdleState
     """
+
     @property
     def name(self):
         return 'idle'
@@ -47,7 +48,7 @@ class IdleState(State):
 
 class LowPowerState(State):
     """
-    Class for remaining idle
+    Low-Power mode to conserve energy
     """
     @property
     def name(self):
@@ -63,13 +64,13 @@ class LowPowerState(State):
         pass
 
 
-class DetumbleState(State):
+class ActuateState(State):
     """
-    Class for detumbling
+    For all actuation purposes (using magnetorquers)
     """
     @property
     def name(self):
-        return 'detumble'
+        return 'actuate'
 
     def enter(self, machine):
         State.enter(self, machine)
@@ -82,3 +83,21 @@ class DetumbleState(State):
         Bnew = np.array(machine.sensors[0:3])
         Bdot = detumble.get_B_dot(Bold, Bnew, .1) # this is a hardcoded tstep (for now)
         machine.cmd = list(detumble.detumble_B_dot(Bnew, Bdot))
+
+
+class PayloadState(State):
+    """
+    For use of camera/radio/etc.
+    """
+    @property
+    def name(self):
+        return 'payload'
+
+    def enter(self, machine):
+        State.enter(self, machine)
+
+    def exit(self, machine):
+        State.exit(self, machine)
+
+    def update(self, machine):
+        pass
