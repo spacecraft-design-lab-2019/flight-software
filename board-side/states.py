@@ -4,6 +4,7 @@ Module for board state machine and generic state
 """
 import ulab as np
 import detumble_algorithms as detumble
+from pycubedmini import cubesat
 
 
 class State():
@@ -43,7 +44,24 @@ class IdleState(State):
         State.exit(self, machine)
 
     def update(self, machine):
-        pass
+        tembling = False # TODO: need function to detect tembling
+        have_target = False # TODO: need function to detect if have target to reach
+        full_voltage = 3.7 # TODO: need verify the hard code value
+        curr_volt_pct = cubesat.battery_voltage()/full_voltage
+        if curr_volt_pct < 0.3:
+            machine.go_to_state('lowpower')
+        elif curr_volt_pct > 0.7 and tembling:
+            machine.go_to_state('actuate')
+        # TODO: check if iLQR state is needed 
+        # elif curr_volt_pct > 0.7 and have_target:
+        #     machine.go_to_state('iLQR')
+        elif curr_volt_pct > 0.8:
+            machine.go_to_state('payload') # state which deal with radio and photo
+        else:
+            pass
+
+
+            
 
 
 class LowPowerState(State):
@@ -62,6 +80,7 @@ class LowPowerState(State):
 
     def update(self, machine):
         pass
+
 
 
 class ActuateState(State):
