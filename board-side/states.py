@@ -32,7 +32,8 @@ class IdleState(State):
     """
     Default state for the satellite. Majority of actions occur via IdleState
     """
-
+    ENTER_VOLT = 0.8 # volt > 0.8 lowpower -> idle
+    EXIT_VOLT =  0.3 # 
     @property
     def name(self):
         return 'idle'
@@ -44,18 +45,18 @@ class IdleState(State):
         State.exit(self, machine)
 
     def update(self, machine):
-        tembling = False # TODO: need function to detect tembling
+        tumbling = False # TODO: need function to detect tumbling
         have_target = False # TODO: need function to detect if have target to reach
         full_voltage = 3.7 # TODO: need verify the hard code value
         curr_volt_pct = cubesat.battery_voltage()/full_voltage
-        if curr_volt_pct < 0.3:
+        if curr_volt_pct < self.EXIT_VOLT:
             machine.go_to_state('lowpower')
-        elif curr_volt_pct > 0.7 and tembling:
+        elif curr_volt_pct > machine.states['actuate'].ENTER_VOLT and tumbling:
             machine.go_to_state('actuate')
         # TODO: check if iLQR state is needed 
         # elif curr_volt_pct > 0.7 and have_target:
         #     machine.go_to_state('iLQR')
-        elif curr_volt_pct > 0.8:
+        elif curr_volt_pct > machine.states['payload'].ENTER_VOLT:
             machine.go_to_state('payload') # state which deal with radio and photo
         else:
             pass
@@ -68,6 +69,8 @@ class LowPowerState(State):
     """
     Low-Power mode to conserve energy
     """
+    ENTER_VOLT = 0.3 
+    EXIT_VOLT =  0.8  
     @property
     def name(self):
         return 'lowpower'
@@ -81,12 +84,12 @@ class LowPowerState(State):
     def update(self, machine):
         pass
 
-
-
 class ActuateState(State):
     """
     For all actuation purposes (using magnetorquers)
     """
+    ENTER_VOLT = 0.7
+    EXIT_VOLT = 0.2
     @property
     def name(self):
         return 'actuate'
@@ -108,6 +111,8 @@ class PayloadState(State):
     """
     For use of camera/radio/etc.
     """
+    ENTER_VOLT = 0.7
+    EXIT_VOLT = 0.2
     @property
     def name(self):
         return 'payload'
