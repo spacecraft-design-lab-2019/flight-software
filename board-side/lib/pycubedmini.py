@@ -15,6 +15,8 @@ https://github.com/pycubed/software/blob/master/default%20libraries/mainboard-v0
 import time
 import board
 import neopixel
+import analogio
+import board
 
 
 class Satellite:
@@ -33,7 +35,16 @@ class Satellite:
         except Exception as e:
             print('[WARNING][Neopixel]',e)
 
+        # Define battery voltage
+        self._vbatt = analogio.AnalogIn(board.BATTERY)
 
+
+    @property
+    def battery_voltage(self):
+        _voltage = self._vbatt.value * 3.3 / (2 ** 16)
+        _voltage = _voltage * (316/110) # 316/110 voltage divider
+        return _voltage # in volts
+        
     # query/set color of Neopixel (LED)
     @property
     def RGB(self):
