@@ -4,13 +4,13 @@ from pycubedmini import cubesat
 from sim_comms import sim_communicate, passthrough_msg
 
 # wait until an input from the computer before continuing
-machine.cubesat.RGB = (255, 0, 0) # set LED to red
+cubesat.RGB = (255, 0, 0) # set LED to red
 input()
-machine.cubesat.RGB = (0, 255, 0) # set LED to green
+cubesat.RGB = (0, 255, 0) # set LED to green
 
 
 # all initial values
-x_k = np.array([[0.1535], [0.2737], [0.0438],[-0.9485], [0],[0],[0]])
+x_k = np.array([[0.1535], [0.2737], [0.0438],[-0.9485], [0],[0],[0]]) # quaternion, gyro bias
 P_k = np.array([[3.000e-6, 0, 0, 0, 0, 0], [0, 3.000e-6, 0, 0, 0, 0], [0, 0, 3.000e-6, 0, 0, 0], [0, 0, 0, 3.046e-4, 0, 0], [0, 0, 0, 0, 3.046e-4, 0],[0, 0, 0, 0, 0, 3.046e-4]])
 # w_k = np.array([[-0.0381], [0.0554], [0.2084]])
 # r_sun_body = np.array([[0.4199], [0.7489], [-0.5127]])
@@ -23,7 +23,11 @@ dt = np.array([.1])
 
 
 while True:
-    sensors = sim_communicate([list(x_k), list(P_k)])
+    x_k.transpose()
+    x_k_list = list(x_k)
+    x_k.transpose()
+    P_k_list = [list(i) for i in list(P_k)] # make this a function
+    sensors = sim_communicate([x_k_list, P_k_list])
     w_k = sensors[0]
     r_sun_body = sensors[1]
     r_B_body = sensors[2]
