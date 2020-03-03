@@ -47,16 +47,15 @@ class IdleState(State):
     def update(self, machine):
         tumbling = False # TODO: need function to detect tumbling
         have_target = False # TODO: need function to detect if have target to reach
-        full_voltage = 3.7 # TODO: need verify the hard code value
-        curr_volt_pct = cubesat.battery_voltage()/full_voltage
-        if curr_volt_pct < self.EXIT_VOLT:
+
+        if machine.get_curr_vlot_pct() < self.EXIT_VOLT:
             machine.go_to_state('lowpower')
-        elif curr_volt_pct > machine.states['actuate'].ENTER_VOLT and tumbling:
+        elif machine.get_curr_vlot_pct() > machine.states['actuate'].ENTER_VOLT and tumbling:
             machine.go_to_state('actuate')
         # TODO: check if iLQR state is needed 
-        # elif curr_volt_pct > 0.7 and have_target:
+        # elif machine.get_curr_vlot_pct() > 0.7 and have_target:
         #     machine.go_to_state('iLQR')
-        elif curr_volt_pct > machine.states['payload'].ENTER_VOLT:
+        elif machine.get_curr_vlot_pct() > machine.states['payload'].ENTER_VOLT:
             machine.go_to_state('payload') # state which deal with radio and photo
         else:
             pass
@@ -82,7 +81,10 @@ class LowPowerState(State):
         State.exit(self, machine)
 
     def update(self, machine):
-        pass
+        if machine.get_curr_vlot_pct() > self.EXIT_VOLT:
+            machine.go_to_state('idle')
+        else:
+            pass
 
 class ActuateState(State):
     """
@@ -105,7 +107,10 @@ class ActuateState(State):
         Bnew = np.array(machine.sensors[0:3])
         Bdot = detumble.get_B_dot(Bold, Bnew, .1) # this is a hardcoded tstep (for now)
         machine.cmd = list(detumble.detumble_B_dot(Bnew, Bdot))
-
+        if machine.get_curr_vlot_pct() > self.EXIT_VOLT:
+            machine.go_to_state('idle')
+        else:
+            pass
 
 class PayloadState(State):
     """
@@ -124,4 +129,7 @@ class PayloadState(State):
         State.exit(self, machine)
 
     def update(self, machine):
-        pass
+        if machine.get_curr_vlot_pct() > self.EXIT_VOLT:
+            machine.go_to_state('idle')
+        else:
+            pass

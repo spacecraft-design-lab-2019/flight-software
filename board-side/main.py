@@ -19,6 +19,11 @@ class StateMachine():
         self.sensors = self.sensors_old # current sensor measurements
         self.cmd = [0,0,0] # current commanded dipole
 
+    def get_curr_vlot_pct(self):
+        full_voltage = 3.7 # TODO: need verify the hard code value
+        curr_volt_pct = cubesat.battery_voltage()/full_voltage
+        return curr_volt_pct
+
     def add_state(self, state):
         self.states[state.name] = state
 
