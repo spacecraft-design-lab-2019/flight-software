@@ -21,7 +21,7 @@ plt.close('all')
 # initialize serial interface with board
 board = serial.Serial()
 board.baudrate = 115200
-board.port = '/dev/ttyACM1'
+board.port = '/dev/ttyACM0'
 board.timeout = .1
 
 board.open()
@@ -48,11 +48,13 @@ try:
         board_state_estimate = board_communicate(board, sensors)
 
         # save board results
-        xk_history[i, :] = np.array(board_state_estimate[0])
+        xk_history[i, :] = np.array(board_state_estimate[0]).flatten()
         Pk_history[i, :, :] = np.array(board_state_estimate[1])
 
         # save sim results
         x_truth_history[i, :] = simulator.debug_output[0]
+
+        print(i)
 
 
 except Exception as e:

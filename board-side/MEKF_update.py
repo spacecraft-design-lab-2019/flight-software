@@ -9,6 +9,8 @@ input()
 cubesat.RGB = (0, 255, 0) # set LED to green
 
 
+# x_k = [[0.1535], [0.2737], [0.0438],[-0.9485], [0],[0],[0]]
+# P_k = [[3.000e-6, 0, 0, 0, 0, 0], [0, 3.000e-6, 0, 0, 0, 0], [0, 0, 3.000e-6, 0, 0, 0], [0, 0, 0, 3.046e-4, 0, 0], [0, 0, 0, 0, 3.046e-4, 0],[0, 0, 0, 0, 0, 3.046e-4]]
 # all initial values
 x_k = np.array([[0.1535], [0.2737], [0.0438],[-0.9485], [0],[0],[0]]) # quaternion, gyro bias
 P_k = np.array([[3.000e-6, 0, 0, 0, 0, 0], [0, 3.000e-6, 0, 0, 0, 0], [0, 0, 3.000e-6, 0, 0, 0], [0, 0, 0, 3.046e-4, 0, 0], [0, 0, 0, 0, 3.046e-4, 0],[0, 0, 0, 0, 0, 3.046e-4]])
@@ -21,19 +23,24 @@ Q = np.array([[3.046e-10, 0, 0, 0, 0, 0], [0, 3.046e-10, 0, 0, 0, 0], [0, 0, 3.0
 R = np.array([[.0003, 0, 0, 0, 0, 0], [0, .0003, 0, 0, 0, 0],[0, 0, .0003, 0, 0, 0],[0, 0, 0, .0076, 0, 0],[0, 0, 0, 0, .0076, 0],[0, 0, 0, 0, 0, .0076]])
 dt = np.array([.1])
 
+passthrough_msg("Done Initializing!")
 
 while True:
     x_k.transpose()
     x_k_list = list(x_k)
     x_k.transpose()
     P_k_list = [list(i) for i in list(P_k)] # make this a function
+    passthrough_msg("I am about to try to communicate!")
     sensors = sim_communicate([x_k_list, P_k_list])
+    passthrough_msg("I communicated!")
+    passthrough_msg(sensors)
     w_k = sensors[0]
     r_sun_body = sensors[1]
     r_B_body = sensors[2]
     r_sun_inert = sensors[3]
     r_B_inert = sensors[4]
-    np.MEKFstep(x_k, P_k, w_k, r_sun_body, r_B_body, r_sun_inert, r_B_inert, Q, R, dt)
+    # np.MEKFstep(x_k, P_k, w_k, r_sun_body, r_B_body, r_sun_inert, r_B_inert, Q, R, dt)
+    passthrough_msg("finished another iteration")
 
 
 
