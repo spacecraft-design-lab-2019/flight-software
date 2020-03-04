@@ -3,6 +3,7 @@ Module for board state machine and generic state
 
 """
 import ulab as np
+import time
 import detumble_algorithms as detumble
 from pycubedmini import cubesat
 
@@ -81,6 +82,8 @@ class LowPowerState(State):
         State.exit(self, machine)
 
     def update(self, machine):
+        while machine.get_curr_vlot_pct() < self.EXIT_VOLT:
+            time.sleep(0.5) # check battery voltage every 0.5 second 
         if machine.get_curr_vlot_pct() > self.EXIT_VOLT:
             machine.go_to_state('idle')
         else:
@@ -107,7 +110,10 @@ class ActuateState(State):
         Bnew = np.array(machine.sensors[0:3])
         Bdot = detumble.get_B_dot(Bold, Bnew, .1) # this is a hardcoded tstep (for now)
         machine.cmd = list(detumble.detumble_B_dot(Bnew, Bdot))
-        if machine.get_curr_vlot_pct() > self.EXIT_VOLT:
+        while machine.get_curr_vlot_pct() > self.EXIT_VOLT:
+            # TODO：calculate state estimate, dipole, actuate magnetorquer
+            time.sleep(0.1) # update battery information & perform operation in 10 Hz
+        if machine.get_curr_vlot_pct() < self.EXIT_VOLT:
             machine.go_to_state('idle')
         else:
             pass
@@ -129,7 +135,10 @@ class PayloadState(State):
         State.exit(self, machine)
 
     def update(self, machine):
-        if machine.get_curr_vlot_pct() > self.EXIT_VOLT:
+        while machine.get_curr_vlot_pct() > self.EXIT_VOLT:
+            #TODO: use radio, take photos
+            time.sleep(0.1) # update battery information & perform operation in 10 Hz
+        if machine.get_curr_vlot_pct() < self.EXIT_VOLT:
             machine.go_to_state('idle')
         else:
             pass
