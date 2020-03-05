@@ -17,7 +17,7 @@ import board
 import neopixel
 import busio
 import adafruit_sdcard
-from digitalio import DigitalInOut
+import digitalio
 import bmx160
 
 
@@ -30,7 +30,7 @@ class Satellite:
         Big init routine as the whole board is brought up.
         """
 
-         # initialize a dictionary of hardware available
+        # initialize a dictionary of hardware available
         self.hardware = {
                          'Neopixel': False,
                          'IMU': False,
@@ -38,8 +38,10 @@ class Satellite:
                          }
 
 
+        # Define SPI,I2C,UART
         self.i2c = busio.I2C(board.SCL1, board.SDA1)
         self.spi = busio.SPI(board.SCK, MISO=board.MISO, MOSI=board.MOSI)
+
 
         # Initialize Neopixel (LED)
         try:
@@ -47,30 +49,30 @@ class Satellite:
             self.neopixel[0] = (0,0,0)
             self.hardware['Neopixel'] = True
         except Exception as e:
-            print('[WARNING][Neopixel]', e)
+            # print('[WARNING][Neopixel]', e)
 
-        # Initialize the BMX160:
+
+        # Initialize IMU:
         try:
             self.imu = bmx160.BMX160_I2C(i2c)
             self.hardware['IMU'] = True
         except Exception as e:
-            print('[WARNING][IMU]', e)
+            # print('[WARNING][IMU]', e)
+
 
         # Initialize the SDCard
         try:
-            cs_sd = DigitalInOut(board.CS_SD)
-            self.sdcard = adafruit_sdcard.SDCard(spi, cs_sd)
+            _sdcs = digitalio.DigitalInOut(board.CS_SD)
+            _sdcs.switch_to_output(value=True)
+            self._sd = adafruit_sdcard.SDCard(self.spi, _sdcs)
 
             # Use the filesystem as normal. Files are under "/sd"
-            vfs = storage.VfsFat(self.sdcard)
+            vfs = storage.VfsFat(self._sd)
             storage.mount(vfs, "/sd")
             sys.path.append("/sd")
             self.hardware['SDCard'] = True
         except Exception as e:
-            print('[WARNING][SDCard]', e)
-
-
-
+            # print('[WARNING][SDCard]', e)
 
 
     # query/set color of Neopixel (LED)
