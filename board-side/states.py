@@ -34,7 +34,7 @@ class IdleState(State):
     Default state for the satellite. Majority of actions occur via IdleState
     """
     ENTER_VOLT = 0.8 # volt > 0.8 lowpower -> idle
-    EXIT_VOLT =  0.3 # 
+    EXIT_VOLT =  0.3 # volt < 0.3 idle -> lowpower
     @property
     def name(self):
         return 'idle'
@@ -48,15 +48,16 @@ class IdleState(State):
     def update(self, machine):
         tumbling = False # TODO: need function to detect tumbling
         have_target = False # TODO: need function to detect if have target to reach
+        take_photo = False # TODO: need function to decide when to turn on payload function
 
         if machine.get_curr_vlot_pct() < self.EXIT_VOLT:
             machine.go_to_state('lowpower')
         elif machine.get_curr_vlot_pct() > machine.states['actuate'].ENTER_VOLT and tumbling:
             machine.go_to_state('actuate')
         # TODO: check if iLQR state is needed 
-        # elif machine.get_curr_vlot_pct() > 0.7 and have_target:
+        # elif machine.get_curr_vlot_pct() > machine.states['iLQR'].ENTER_VOLT and have_target:
         #     machine.go_to_state('iLQR')
-        elif machine.get_curr_vlot_pct() > machine.states['payload'].ENTER_VOLT:
+        elif machine.get_curr_vlot_pct() > machine.states['payload'].ENTER_VOLT and take_photo:
             machine.go_to_state('payload') # state which deal with radio and photo
         else:
             pass
@@ -106,14 +107,17 @@ class ActuateState(State):
         State.exit(self, machine)
 
     def update(self, machine):
+        '''
         Bold = np.array(machine.sensors_old[0:3])
         Bnew = np.array(machine.sensors[0:3])
         Bdot = detumble.get_B_dot(Bold, Bnew, .1) # this is a hardcoded tstep (for now)
         machine.cmd = list(detumble.detumble_B_dot(Bnew, Bdot))
+        '''
         while machine.get_curr_vlot_pct() > self.EXIT_VOLT:
             # TODO：calculate state estimate, dipole, actuate magnetorquer
+            target_reached = True # TODO: need function to determine if target is reached
             time.sleep(0.1) # update battery information & perform operation in 10 Hz
-        if machine.get_curr_vlot_pct() < self.EXIT_VOLT:
+        if machine.get_curr_vlot_pct() < self.EXIT_VOLT or target_reached:
             machine.go_to_state('idle')
         else:
             pass
@@ -137,8 +141,10 @@ class PayloadState(State):
     def update(self, machine):
         while machine.get_curr_vlot_pct() > self.EXIT_VOLT:
             #TODO: use radio, take photos
+            Done = True # TODO: need some function to determing if task finished in the payload mode
+            tumbling = False # TODO: need function to detect tumbling
             time.sleep(0.1) # update battery information & perform operation in 10 Hz
-        if machine.get_curr_vlot_pct() < self.EXIT_VOLT:
+        if machine.get_curr_vlot_pct() < self.EXIT_VOLT or Done or tumbling:
             machine.go_to_state('idle')
         else:
             pass
