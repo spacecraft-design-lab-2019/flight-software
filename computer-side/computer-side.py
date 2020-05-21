@@ -21,7 +21,7 @@ plt.close('all')
 # initialize serial interface with board
 board = serial.Serial()
 board.baudrate = 115200
-board.port = '/dev/ttyACM0'
+board.port = '/dev/tty.usbmodem146101'
 board.timeout = .1
 
 board.open()

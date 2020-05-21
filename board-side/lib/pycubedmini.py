@@ -14,7 +14,7 @@ https://github.com/pycubed/software/blob/master/default%20libraries/mainboard-v0
 """
 import time
 import board
-import neopixel
+#import neopixel
 
 
 class Satellite:
@@ -24,7 +24,7 @@ class Satellite:
         """
         self.hardware = {} # initialize a dictionary of hardware available
 
-
+"""
         # Initialize Neopixel (LED)
         try:
             self.neopixel = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=0.5, auto_write=False)
@@ -47,5 +47,5 @@ class Satellite:
             except Exception as e:
                 print('[WARNING]',e)
 
-         
+         """
 cubesat = Satellite()
