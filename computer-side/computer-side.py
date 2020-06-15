@@ -21,7 +21,7 @@ plt.close('all')
 # initialize serial interface with board
 board = serial.Serial()
 board.baudrate = 115200
-board.port = '/dev/tty.usbmodem146101'
+board.port = '/dev/tty.usbmodem143101'
 board.timeout = .1
 
 board.open()
@@ -34,7 +34,7 @@ simulator = Simulator(config)
 cmd = [0,0,0] # start off first iteration with zero command
 
 # tunable parameters
-num_steps = 3600
+num_steps = 600
 L_history = np.zeros(num_steps)
 cmd_history = np.zeros((num_steps,3))
 
@@ -42,7 +42,7 @@ cmd_history = np.zeros((num_steps,3))
 try:
 	# loop
 	for i in range(num_steps):
-	    sensors = simulator.step(np.array(cmd))
+
 	    L_history[i] = np.linalg.norm(sensors[6:9])
 	    print("Sensors Sent:")
 	    print(sensors)

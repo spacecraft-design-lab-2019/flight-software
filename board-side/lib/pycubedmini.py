@@ -46,6 +46,6 @@ class Satellite:
                 self.neopixel.show()
             except Exception as e:
                 print('[WARNING]',e)
-
-         """
+"""
+         
 cubesat = Satellite()
