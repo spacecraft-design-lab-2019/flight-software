@@ -34,7 +34,7 @@ simulator = Simulator(config)
 cmd = [0,0,0] # start off first iteration with zero command
 
 # tunable parameters
-num_steps = 2000
+num_steps = 3600
 L_history = np.zeros(num_steps)
 cmd_history = np.zeros((num_steps,3))
 
@@ -43,15 +43,15 @@ try:
 	# loop
 	for i in range(num_steps):
 	    sensors = simulator.step(np.array(cmd))
-	    L_history[i] = np.linalg.norm(sensors[3:6])
-	    # print("Sensors Sent:")
-	    # print(sensors)
-	    # print()
+	    L_history[i] = np.linalg.norm(sensors[6:9])
+	    print("Sensors Sent:")
+	    print(sensors)
+	    print()
 
 	    cmd = board_communicate(board, sensors.tolist())
 	    cmd_history[i,:] = np.array(cmd)
-	    # print("Command Received:")
-	    # print(cmd)
+	    print("Command Received:")
+	    print(cmd)
 	    print(i)
 
 except Exception as e:
