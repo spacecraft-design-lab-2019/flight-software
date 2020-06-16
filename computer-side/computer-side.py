@@ -43,7 +43,9 @@ try:
 	# loop
 	for i in range(num_steps):
 
-	    L_history[i] = np.linalg.norm(sensors[6:9])
+	    sensors = simulator.step(np.array(cmd))
+
+	    L_history[i] = np.linalg.norm(sensors[3:6])
 	    print("Sensors Sent:")
 	    print(sensors)
 	    print()
