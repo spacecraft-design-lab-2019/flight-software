@@ -16,10 +16,11 @@ import analogio
 import storage, sys
 import pulseio, neopixel
 import bmx160
+import drv8830
 from os import listdir, stat, statvfs, mkdir
 from bitflags import bitFlag,multiBitFlag
 from micropython import const
-# import adafruit_tsl2561
+import adafruit_tsl2561
 
 '''
 TODO: implement backup import
@@ -66,11 +67,12 @@ class Satellite:
         self.BOOTTIME= const(self.timeon)
         self.hardware = {
                        'IMU':    False,
-                       'Radio': False,
+                       'Radio':  False,
                        'SDcard': False,
                        'GPS':    False,
                        'WDT':    False,
                        'Sun':    False,
+                       'Coils':  False
                        }
         self.micro=microcontroller
 
@@ -134,9 +136,35 @@ class Satellite:
         except Exception as e:
             print('[ERROR][SD Card]',e)
 
-        # TODO Initialize Sun Sensors
+        # Initialize Sun Sensors
+        try:
+            sun_yn = adafruit_tsl2561.TSL2561(self.i2c2,address=0x29) # -Y
+            sun_zn = adafruit_tsl2561.TSL2561(self.i2c2,address=0x39) # -Z
+            sun_xn = adafruit_tsl2561.TSL2561(self.i2c1,address=0x49) # -X
 
-        # TODO Initialize H-Bridges
+            sun_yp = adafruit_tsl2561.TSL2561(self.i2c1,address=0x29) # +Y
+            sun_zp = adafruit_tsl2561.TSL2561(self.i2c1,address=0x39) # +Z
+            sun_xp = adafruit_tsl2561.TSL2561(self.i2c2,address=0x49) # +X
+            sun_sensors=[sun_zn,sun_yn,sun_xn,sun_yp,sun_xp]
+            for i in sun_sensors:
+                i.enabled=False
+            self.hardware['Sun']=True
+        except Exception as e:
+            print('[ERROR][Sun Sensors]',e)
+
+        # Initialize H-Bridges
+        try:
+            drv_x = drv8830.DRV8830(self.i2c3,0x68) # U6
+            drv_y = drv8830.DRV8830(self.i2c3,0x60) # U8
+            drv_z = drv8830.DRV8830(self.i2c3,0x62) # U4
+            coils = [drv_x,drv_y,drv_z]
+            for driver in coils:
+                driver.mode=drv8830.COAST
+                driver.vout=0
+            self.hardware['Coils']=True
+        except Exception as e:
+            print('[ERROR][H-Bridges]',e)
+
 
     def reinit(self,dev):
         dev=dev.lower()
