@@ -7,7 +7,7 @@ PyCubed Mini mainboard-v02 for Pocketqube Mission
 
 """
 
-import adafruit_sdcard
+import sdcardio
 import pycubed_rfm9x
 import board, microcontroller
 import busio, time, json
@@ -83,11 +83,11 @@ class Satellite:
         self.i2c1  = busio.I2C(board.SCL1,board.SDA1)
         self.i2c2  = busio.I2C(board.SCL2,board.SDA2)
         self.i2c3  = busio.I2C(board.SCL3,board.SDA3)
-        self.spi  = busio.SPI(board.SCK,MOSI=board.MOSI,MISO=board.MISO)
+        # self.spi   = busio.SPI(board.SCK,MOSI=board.MOSI,MISO=board.MISO)
+        self.spi   = board.SPI()
+
 
         # Define sdcard
-        self._sdcs = digitalio.DigitalInOut(board.CS_SD)
-        self._sdcs.switch_to_output(value=True)
         self.filename="/sd/default.txt"
         self.logfile="/sd/logs/log000.txt"
 
@@ -109,6 +109,17 @@ class Satellite:
         except Exception as e:
             print('[WARNING][Neopixel]',e)
 
+        # Initialize sdcard
+        try:
+            self._sd   = sdcardio.SDCard(self.spi, board.CS_SD, baudrate=4000000)
+            self._vfs = storage.VfsFat(self._sd)
+            storage.mount(self._vfs, "/sd")
+            sys.path.append("/sd")
+            self.hardware['SDcard'] = True
+            # self.new_Log() # create new log file
+        except Exception as e:
+            print('[ERROR][SD Card]',e)
+
         # Initialize radio #1 - UHF
         try:
             self.radio = pycubed_rfm9x.RFM9x(self.spi, self._rf_cs, self._rf_rst, self.UHF_FREQ,rfm95pw=True)
@@ -120,21 +131,10 @@ class Satellite:
 
         # Initialize IMU
         try:
-            self.IMU = bmx160.BMX160_I2C(self.i2c1)
+            self.IMU = bmx160.BMX160_I2C(self.i2c1,address=0x69)
             self.hardware['IMU'] = True
         except Exception as e:
-            print('[ERROR][IMU]',e)
-
-        # Initialize sdcard
-        try:
-            self._sd   = adafruit_sdcard.SDCard(self.spi, self._sdcs, baudrate=1000000)
-            self._vfs = storage.VfsFat(self._sd)
-            storage.mount(self._vfs, "/sd")
-            sys.path.append("/sd")
-            self.hardware['SDcard'] = True
-            self.new_Log() # create new log file
-        except Exception as e:
-            print('[ERROR][SD Card]',e)
+            print(f'[ERROR][IMU] {e}\n\tMaybe try address=0x68?')
 
         # Initialize Sun Sensors
         try:
